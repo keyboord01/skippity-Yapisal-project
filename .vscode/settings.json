@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "board.h": "c",
+    "game_logic.h": "c"
+  }
+}
