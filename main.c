@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "board.h"
 #include "game_logic.h"
 
@@ -17,6 +18,7 @@ int main() {
         if (!board) {
             return 1; // Exit if board creation failed
         }
+        initializeBoard(board);
     } else {
         // Clear the invalid input
         while (getchar() != '\n');
@@ -42,16 +44,45 @@ int main() {
 
         if (command == 'm') {
             if (gameMode == '2') {
-                // Computer's turn
-                computerMove(board);
+                // Player's turn
+                printf("Enter the coordinates of the piece to move (col row): ");
+                scanf("%d %d", &startX, &startY);
+                printf("Enter the coordinates of the target cell (col row): ");
+                scanf("%d %d", &endX, &endY);
+
+                // Save the current state to the undo stack before making a move
+                push(&undoStack, board);
+
+                makeMove(board, startX, startY, endX, endY);
+
+                // Clear the redo stack since redo is only valid immediately after an undo
+                while (redoStack.top != NULL) {
+                    Board* temp = pop(&redoStack);
+                    freeBoard(temp);
+                }
+
+                displayBoard(board);
+
                 if (checkGameEnd(board)) {
                     printf("Game over!\n");
                     break;
                 }
-                // After the computer moves, it's the player's turn
-                printf("Enter the coordinates of the piece to move (row col): ");
+
+                // Computer's turn
+                computerMove(board);
+
+                displayBoard(board);
+
+                if (checkGameEnd(board)) {
+                    printf("Game over!\n");
+                    break;
+                }
+
+            } else {
+                // Two player mode
+                printf("Enter the coordinates of the piece to move (col row): ");
                 scanf("%d %d", &startX, &startY);
-                printf("Enter the coordinates of the target cell (row col): ");
+                printf("Enter the coordinates of the target cell (col row): ");
                 scanf("%d %d", &endX, &endY);
 
                 // Save the current state to the undo stack before making a move
@@ -64,22 +95,12 @@ int main() {
                     Board* temp = pop(&redoStack);
                     freeBoard(temp);
                 }
-            } else {
-                // Two player mode
-                printf("Enter the coordinates of the piece to move (row col): ");
-                scanf("%d %d", &startX, &startY);
-                printf("Enter the coordinates of the target cell (row col): ");
-                scanf("%d %d", &endX, &endY);
 
-                // Save the current state to the undo stack before making a move
-                push(&undoStack, board);
+                displayBoard(board);
 
-                makeMove(board, startX, startY, endX, endY);
-
-                // Clear the redo stack since redo is only valid immediately after an undo
-                while (redoStack.top != NULL) {
-                    Board* temp = pop(&redoStack);
-                    freeBoard(temp);
+                if (checkGameEnd(board)) {
+                    printf("Game over!\n");
+                    break;
                 }
             }
         } else if (command == 'u') {
@@ -105,10 +126,7 @@ int main() {
             break;
         }
 
-        if (checkGameEnd(board)) {
-            printf("Game over!\n");
-            break;
-        }
+        displayBoard(board);
     }
 
     freeBoard(board);

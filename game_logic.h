@@ -22,11 +22,11 @@ void push(Stack* stack, Board* board);
 Board* pop(Stack* stack);
 void undo(Stack* undoStack, Stack* redoStack, Board** board);
 void redo(Stack* redoStack, Stack* undoStack, Board** board);
-Board* copyBoard(Board* board);
 void saveGame(Board* board, const char* filename);
 Board* loadGame(const char* filename);
-
-// Computer opponent functions
+int checkGameEnd(Board* board);
+int hasValidMoves(Board* board);
 void computerMove(Board* board);
+int countCaptures(Board* board, int startX, int startY, int endX, int endY); // Declaration for countCaptures
 
 #endif // GAME_LOGIC_H

@@ -80,20 +80,39 @@ void placePieces(Board* board) {
 
 // Function to display the board on the screen
 void displayBoard(Board* board) {
-    printf("Player Score: %d\n", board->playerScore);
-    printf("Computer Score: %d\n", board->computerScore);
+    // Print column labels
+    printf("   ");
+    for (int i = 0; i < board->size; i++) {
+        printf(" %2d ", i);
+    }
+    printf("\n");
 
     for (int i = 0; i < board->size; i++) {
+        // Print row label
+        printf("%2d ", i);
+
         for (int j = 0; j < board->size; j++) {
-            printf("| %c ", board->cells[i][j].piece);
+            if (board->cells[i][j].isOccupied) {
+                printf("| %c ", board->cells[i][j].piece);
+            } else {
+                printf("|   ");
+            }
         }
         printf("|\n");
+
+        // Print row separator
+        printf("   ");
         for (int j = 0; j < board->size; j++) {
             printf("----");
         }
         printf("-\n");
     }
+
+    printf("Player Score: %d\n", board->playerScore);
+    printf("Computer Score: %d\n", board->computerScore);
 }
+
+
 
 // Function to free the memory allocated for the board
 void freeBoard(Board* board) {

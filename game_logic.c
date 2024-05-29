@@ -16,52 +16,31 @@ int isValidMove(Board* board, int startX, int startY, int endX, int endY) {
         return 0;
     }
 
-    // Check if the move is in a straight line and skips at least one cell
-    if (startX != endX && startY != endY) {
-        return 0;
-    }
-    if (abs(startX - endX) <= 1 && abs(startY - endY) <= 1) {
-        return 0;
-    }
-
-    // Check if there are pieces to capture in the path
-    int dx = (endX - startX) ? (endX - startX) / abs(endX - startX) : 0;
-    int dy = (endY - startY) ? (endY - startY) / abs(endY - startY) : 0;
-    int x = startX + dx, y = startY + dy;
-
-    int hasCapture = 0;
-    while (x != endX || y != endY) {
-        if (board->cells[x][y].isOccupied) {
-            hasCapture = 1;
-            break;
+    // Check if the move is a valid jump over an adjacent piece (like checkers)
+    int dx = endX - startX;
+    int dy = endY - startY;
+    if ((abs(dx) == 2 && abs(dy) == 0) || (abs(dy) == 2 && abs(dx) == 0)) {
+        int midX = (startX + endX) / 2;
+        int midY = (startY + endY) / 2;
+        if (board->cells[midX][midY].isOccupied) {
+            return 1;
         }
-        x += dx;
-        y += dy;
     }
-    return hasCapture;
+
+    return 0;
 }
+
 
 // Function to make a move and capture pieces
 void makeMove(Board* board, int startX, int startY, int endX, int endY) {
     if (isValidMove(board, startX, startY, endX, endY)) {
-        int dx = (endX - startX) ? (endX - startX) / abs(endX - startX) : 0;
-        int dy = (endY - startY) ? (endY - startY) / abs(endY - startY) : 0;
-        int x = startX + dx, y = startY + dy;
+        int midX = (startX + endX) / 2;
+        int midY = (startY + endY) / 2;
 
-        // Capture pieces in the path
-        while (x != endX || y != endY) {
-            if (board->cells[x][y].isOccupied) {
-                board->cells[x][y].piece = ' ';
-                board->cells[x][y].isOccupied = 0;
-                if (board->cells[startX][startY].piece == 'P') {
-                    board->playerScore++;
-                } else if (board->cells[startX][startY].piece == 'C') {
-                    board->computerScore++;
-                }
-            }
-            x += dx;
-            y += dy;
-        }
+        // Capture the piece
+        char capturedPiece = board->cells[midX][midY].piece;
+        board->cells[midX][midY].piece = ' ';
+        board->cells[midX][midY].isOccupied = 0;
 
         // Move the piece
         board->cells[endX][endY].piece = board->cells[startX][startY].piece;
@@ -69,60 +48,44 @@ void makeMove(Board* board, int startX, int startY, int endX, int endY) {
         board->cells[startX][startY].piece = ' ';
         board->cells[startX][startY].isOccupied = 0;
 
-        // Allow multiple jumps
-        while (1) {
-            displayBoard(board);
-            printf("Do you want to make another jump with the same piece? (y/n): ");
-            char choice;
-            scanf(" %c", &choice);
-            if (choice == 'n') {
-                break;
-            }
-            printf("Enter the coordinates of the target cell for the next jump (row col): ");
-            scanf("%d %d", &endX, &endY);
-
-            if (!isValidMove(board, startX, startY, endX, endY)) {
-                printf("Invalid move! Ending turn.\n");
-                break;
-            }
-
-            // Capture pieces in the new path
-            dx = (endX - startX) ? (endX - startX) / abs(endX - startX) : 0;
-            dy = (endY - startY) ? (endY - startY) / abs(endY - startY) : 0;
-            x = startX + dx;
-            y = startY + dy;
-
-            while (x != endX || y != endY) {
-                if (board->cells[x][y].isOccupied) {
-                    board->cells[x][y].piece = ' ';
-                    board->cells[x][y].isOccupied = 0;
-                    if (board->cells[startX][startY].piece == 'P') {
-                        board->playerScore++;
-                    } else if (board->cells[startX][startY].piece == 'C') {
-                        board->computerScore++;
-                    }
-                }
-                x += dx;
-                y += dy;
-            }
-
-            // Move the piece
-            board->cells[endX][endY].piece = board->cells[startX][startY].piece;
-            board->cells[endX][endY].isOccupied = 1;
-            board->cells[startX][startY].piece = ' ';
-            board->cells[startX][startY].isOccupied = 0;
-
-            // Update the start coordinates for the next potential jump
-            startX = endX;
-            startY = endY;
+        // Update the score
+        if (capturedPiece != ' ') {
+            board->playerScore++; // Assuming it's the player's turn, adjust as needed for computer
         }
 
         // Update board after the move
         updateBoard(board, startX, startY, endX, endY);
+
+        // Check if another jump is possible
+        int anotherJump = 0;
+        int dx[] = {-2, 2, 0, 0};
+        int dy[] = {0, 0, -2, 2};
+        for (int i = 0; i < 4; i++) {
+            int newX = endX + dx[i];
+            int newY = endY + dy[i];
+            if (isValidMove(board, endX, endY, newX, newY)) {
+                anotherJump = 1;
+                break;
+            }
+        }
+
+        if (anotherJump) {
+            displayBoard(board);
+            printf("Do you want to make another jump with the same piece? (y/n): ");
+            char choice;
+            scanf(" %c", &choice);
+            if (choice == 'y') {
+                printf("Enter the coordinates of the target cell for the next jump (col row): ");
+                scanf("%d %d", &startX, &startY);
+                makeMove(board, endX, endY, startX, startY);
+            }
+        }
     } else {
         printf("Invalid move! Please try again.\n");
     }
 }
+
+
 
 // Function to update the board after a move
 void updateBoard(Board* board, int startX, int startY, int endX, int endY) {
@@ -138,6 +101,7 @@ int hasValidMoves(Board* board) {
                 for (int endX = 0; endX < board->size; endX++) {
                     for (int endY = 0; endY < board->size; endY++) {
                         if (isValidMove(board, startX, startY, endX, endY)) {
+                            printf("Valid move found: (%d, %d) to (%d, %d)\n", startX, startY, endX, endY);
                             return 1;
                         }
                     }
@@ -150,24 +114,12 @@ int hasValidMoves(Board* board) {
 
 // Function to check if the game has ended
 int checkGameEnd(Board* board) {
-    int playerPieces = 0;
-    int computerPieces = 0;
-
-    for (int i = 0; i < board->size; i++) {
-        for (int j = 0; j < board->size; j++) {
-            if (board->cells[i][j].isOccupied) {
-                if (board->cells[i][j].piece == 'P') {
-                    playerPieces++;
-                } else if (board->cells[i][j].piece == 'C') {
-                    computerPieces++;
-                }
-            }
-        }
-    }
-
-    if (playerPieces == 0 || computerPieces == 0 || !hasValidMoves(board)) {
+    // Check if there are any valid moves left
+    if (!hasValidMoves(board)) {
+        printf("Game over: No valid moves left.\n");
         return 1;
     }
+
     return 0;
 }
 
@@ -268,7 +220,7 @@ Board* loadGame(const char* filename) {
     return board;
 }
 
-// Helper function to count the number of captures for a move
+// Function to count the number of captures for a move
 int countCaptures(Board* board, int startX, int startY, int endX, int endY) {
     int captures = 0;
     int dx = (endX - startX) ? (endX - startX) / abs(endX - startX) : 0;
