@@ -3,7 +3,7 @@
 #include <time.h>
 #include "board.h"
 
-// Function to create a new board
+// Function to create a new board 
 Board* createBoard(int size) {
     if (size > MAX_SIZE) {
         printf("Board size too large! Maximum size is %d.\n", MAX_SIZE);
@@ -52,12 +52,12 @@ void initializeBoard(Board* board) {
         }
     }
 
-    placePieces(board); // Place pieces after initializing the board
+    placePieces(board);
 }
 
 // Function to randomly place pieces on the board, leaving the center empty
 void placePieces(Board* board) {
-    char pieces[] = {'A', 'B', 'C'}; // Example set of pieces
+    char pieces[] = {'A', 'B', 'C'};
     int numPieces = sizeof(pieces) / sizeof(pieces[0]);
     int center = board->size / 2;
 
@@ -78,9 +78,8 @@ void placePieces(Board* board) {
     }
 }
 
-// Function to display the board on the screen
+// Function to display the board
 void displayBoard(Board* board) {
-    // Print column labels
     printf("   ");
     for (int i = 0; i < board->size; i++) {
         printf(" %2d ", i);
@@ -88,7 +87,6 @@ void displayBoard(Board* board) {
     printf("\n");
 
     for (int i = 0; i < board->size; i++) {
-        // Print row label
         printf("%2d ", i);
 
         for (int j = 0; j < board->size; j++) {
@@ -100,7 +98,6 @@ void displayBoard(Board* board) {
         }
         printf("|\n");
 
-        // Print row separator
         printf("   ");
         for (int j = 0; j < board->size; j++) {
             printf("----");
